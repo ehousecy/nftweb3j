@@ -13,7 +13,14 @@
 * web3j
     * 直接调用生成的合约 java wrapper调用、部署合约，或者
     * 参考java wrapper数据组装方式调用、部署合约
-    
+
+# 合约地址
+
+|链|地址|测试私钥|
+|:---:|:---:|:---:|
+|以太坊|0x2f80F28102f42368B56Bbd52e1EC6452EBf35069|0x6c7117111a42dd5dfcff752ee0b32c3f85699192d6c18297fc23d473bf8089c9|
+|conflux|cfxtest:aam66h08kb8acc4ea25661xpg1xbf2e8xy1a95pnju|3B57A00547A05511B0339FFBD9AA7A0AD2F6FD3D0B980372C22252F77D14D03D|
+
 # 接口
 * 初始化web3j
 
@@ -177,4 +184,25 @@ Function function = new Function(
         Collections.<TypeReference<?>>emptyList());
 // 交易参考以上
 。。。
+```
+
+* 查询日志
+
+|参数|类型|备注|
+|:---:|:---:|:---:|
+|contractAdd|String|合约地址|
+|fromBlock|实现DefaultBlockParameter接口|开始监控的块高|
+|toBlock|实现DefaultBlockParameter接口|结束监控的块高|
+|topic|String|合约事件哈希|
+
+```
+String topic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST,
+        DefaultBlockParameterName.LATEST, "0x2f80F28102f42368B56Bbd52e1EC6452EBf35069")
+        .addSingleTopic(topic);
+
+web3j.ethLogFlowable(filter).subscribe(log -> {
+    System.out.println(log);
+    System.out.println(log.getTopics());
+});
 ```

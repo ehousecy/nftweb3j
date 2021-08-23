@@ -6,6 +6,8 @@ import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.Web3ClientVersion;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.RawTransactionManager;
@@ -216,12 +218,26 @@ public class demo {
         sendTx(txData);
     }
 
+    public void filterLog() {
+        String topic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+        EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST,
+                DefaultBlockParameterName.LATEST, "0x2f80F28102f42368B56Bbd52e1EC6452EBf35069")
+                .addSingleTopic(topic);
+
+        web3j.ethLogFlowable(filter).subscribe(log -> {
+            System.out.println(log);
+            System.out.println(log.getTopics());
+        });
+
+    }
+
     public static void main(String[] args) {
         demo dc = new demo();
          dc.getWebVer();
         // dc.deploy();
 //         dc.mintArtWorkToken();
-         dc.mineArtWorkToken2Owner();
+//         dc.mineArtWorkToken2Owner();
+        dc.filterLog();
     }
 
 
