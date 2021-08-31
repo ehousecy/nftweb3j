@@ -54,6 +54,10 @@ public class confluxDemo {
         txBuilder.withChainId(1);
         txBuilder.withTo(contractAddress);
         txBuilder.withValue(value);
+
+        txBuilder.withGasPrice(BigInteger.valueOf(1)); // 没有似乎也没关系
+        txBuilder.withGasLimit(BigInteger.valueOf(240904)); // 没有似乎也没关系
+
         String data = makeFunctionCallData();
         txBuilder.withData(data);
 
@@ -114,7 +118,7 @@ public class confluxDemo {
                 "mintArtWorksToken",  // 合约方法名
                 Arrays.<Type>asList(firstArg,
                         secondArg,
-                        new Uint256(121)),
+                        new Uint256(22)),
                 Collections.<TypeReference<?>>emptyList());
         String txData = FunctionEncoder.encode(function);
         System.out.println(txData);
