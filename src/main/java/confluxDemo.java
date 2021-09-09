@@ -1,33 +1,74 @@
+import cn.com.tass.jce.castle.core.jce.provider.TassProvider;
+import cn.com.tass.jce.castle.core.jce.spec.ECNamedCurveGenParameterSpec;
 import conflux.web3j.AccountManager;
 import conflux.web3j.Cfx;
 import conflux.web3j.types.Address;
 import conflux.web3j.types.RawTransaction;
-import conflux.web3j.types.SendTransactionResult;
 import conflux.web3j.types.TransactionBuilder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.Collections;
 
 public class confluxDemo {
     public String confluxSk = "0x3B57A00547A05511B0339FFBD9AA7A0AD2F6FD3D0B980372C22252F77D14D03D";
-
     Address address = new Address("cfxtest:aam66h08kb8acc4ea25661xpg1xbf2e8xy1a95pnju");
     Address contractAddress = new Address("cfxtest:achm7rp1p42rvxh908up7c6a29r6nrt5f67xp4jm1g");
     AccountManager am = null;
 
     Cfx cfx = null;
 
+    static KeyStore keyStore = null;
+
+    static {
+        Security.addProvider(new TassProvider());
+        try {
+            keyStore = KeyStore.getInstance("TAKS", "TASS");
+            keyStore.load(null, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void importAddress() {
+
         System.out.println(address.getAddress()); // "cfxtest:aak7fsws4u4yf38fk870218p1h3gxut3ku00u1k1da"
         System.out.println(address.getHexAddress()); // "0x13d2bA4eD43542e7c54fbB6c5fCCb9f269C1f94C"
         System.out.println(address.getVerboseAddress()); // "NET1921:TYPE.USER:AAR8JZYBZV0FHZREAV49SYXNZUT8S0JT1AT8UHK7M3"
         System.out.println(address.getNetworkId()); // 1
         System.out.println(address.getType()); // user
+    }
+
+    public void genAccount() {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC", "TASS");
+            ECNamedCurveGenParameterSpec parameterSpec = new ECNamedCurveGenParameterSpec("secp256k1");
+            keyPairGenerator.initialize(parameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            String hash = Hash.sha3(String.valueOf(keyPair.getPublic()));
+            System.out.println(hash);
+            String addressHex = "0x" + hash.substring(hash.length() - 40);
+            System.out.println(addressHex); // yanggb
+            addressHex = Keys.toChecksumAddress(addressHex);
+            System.out.println(addressHex);
+            Address address2 = new Address(addressHex, 1);
+            System.out.println(address2.getAddress());
+            System.out.println(address2.getHexAddress());
+
+        } catch (Exception e) {
+
+        }
     }
 
     public void importSk() {
@@ -36,7 +77,7 @@ public class confluxDemo {
         try {
             am = new AccountManager(testNetId);
             // import private key
-            am.imports(confluxSk, "Zjj");
+            am.imports(confluxSk, "112");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -127,7 +168,8 @@ public class confluxDemo {
 
     public static void main(String args[]) {
         confluxDemo cfd = new confluxDemo();
-        cfd.importSk();
-        cfd.buildAndSendTx();
+//        cfd.importSk();
+//        cfd.buildAndSendTx();
+        cfd.genAccount();
     }
 }
