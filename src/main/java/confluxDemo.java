@@ -1,23 +1,25 @@
+import cn.com.tass.jce.castle.core.jcajce.provider.asymmetric.ec.TAECPrivateKey;
 import cn.com.tass.jce.castle.core.jce.provider.TassProvider;
 import cn.com.tass.jce.castle.core.jce.spec.ECNamedCurveGenParameterSpec;
+import conflux.web3j.Account;
 import conflux.web3j.AccountManager;
 import conflux.web3j.Cfx;
 import conflux.web3j.types.Address;
 import conflux.web3j.types.RawTransaction;
 import conflux.web3j.types.TransactionBuilder;
+import org.bouncycastle.util.encoders.Hex;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.Security;
+import java.security.*;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 
 public class confluxDemo {
@@ -49,27 +51,6 @@ public class confluxDemo {
         System.out.println(address.getType()); // user
     }
 
-    public void genAccount() {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC", "TASS");
-            ECNamedCurveGenParameterSpec parameterSpec = new ECNamedCurveGenParameterSpec("secp256k1");
-            keyPairGenerator.initialize(parameterSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-            String hash = Hash.sha3(String.valueOf(keyPair.getPublic()));
-            System.out.println(hash);
-            String addressHex = "0x" + hash.substring(hash.length() - 40);
-            System.out.println(addressHex); // yanggb
-            addressHex = Keys.toChecksumAddress(addressHex);
-            System.out.println(addressHex);
-            Address address2 = new Address(addressHex, 1);
-            System.out.println(address2.getAddress());
-            System.out.println(address2.getHexAddress());
-
-        } catch (Exception e) {
-
-        }
-    }
 
     public void importSk() {
         int testNetId = 1;
@@ -78,6 +59,8 @@ public class confluxDemo {
             am = new AccountManager(testNetId);
             // import private key
             am.imports(confluxSk, "112");
+            Address a = am.create("232");
+            System.out.println(a.getAddress());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -96,8 +79,8 @@ public class confluxDemo {
         txBuilder.withTo(contractAddress);
         txBuilder.withValue(value);
 
-        txBuilder.withGasPrice(BigInteger.valueOf(1)); // 没有似乎也没关系
-        txBuilder.withGasLimit(BigInteger.valueOf(240904)); // 没有似乎也没关系
+        txBuilder.withGasPrice(BigInteger.valueOf(1)); // 没有的话，sdk会用默认值
+        txBuilder.withGasLimit(BigInteger.valueOf(240904)); // 没有的话，sdk会用默认值
 
         String data = makeFunctionCallData();
         txBuilder.withData(data);
@@ -120,12 +103,7 @@ public class confluxDemo {
     }
 
     public String makeFunctionCallData() {
-        //        [["zzz","111","ZHH","lately","asdasd","morden","122","12","33","11","12","11"], true ]
-//        [["https://sad", "adasd"],["https://sad", "adasd"]]
-//        12
 
-        //[["zzz","111","ZHH","lately","asdasd","morden",
-        // "122","12","33","11","12","11"],true]
         DynamicStruct basicInfoArg = new DynamicStruct(
                 new Utf8String("zzz"),
                 new Utf8String("111"),
@@ -159,7 +137,7 @@ public class confluxDemo {
                 "mintArtWorksToken",  // 合约方法名
                 Arrays.<Type>asList(firstArg,
                         secondArg,
-                        new Uint256(22)),
+                        new Uint256(332)),
                 Collections.<TypeReference<?>>emptyList());
         String txData = FunctionEncoder.encode(function);
         System.out.println(txData);
@@ -170,6 +148,70 @@ public class confluxDemo {
         confluxDemo cfd = new confluxDemo();
 //        cfd.importSk();
 //        cfd.buildAndSendTx();
-        cfd.genAccount();
+        cfd.genKeyPairAndAddress();
+//        cfd.sendTx();
     }
+
+
+
+    public void genKeyPairAndAddress() {
+        KeyPairGenerator keyPairGenerator = null;
+        try {
+            keyPairGenerator = KeyPairGenerator.getInstance("EC", "TASS");
+            ECNamedCurveGenParameterSpec parameterSpec = new ECNamedCurveGenParameterSpec("secp256k1");
+            keyPairGenerator.initialize(parameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            String sk = Hex.toHexString(((TAECPrivateKey)keyPair.getPrivate()).getD().toByteArray());
+            System.out.println("私钥： "+sk);
+            System.out.println(sk.length());
+
+            connectNode();
+            Account account = Account.create(cfx, "0x"+sk);
+            System.out.printf("conflux address %s\n", account.getAddress());
+            System.out.printf("hex address %s\n", account.getHexAddress());
+        } catch (Exception e) {
+        }
+    }
+
+    public void sendTx() {
+        String sk = "0x326a6467e643328f14fe83c1663ca3ffb57cac54b120c3e31164263b4a585ffd";
+        int testNetId = 1;
+        // Initialize a accountManager
+        try {
+            am = new AccountManager(testNetId);
+            // import private key
+            am.imports(sk, "222111");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        connectNode();
+
+        BigInteger value = new BigInteger("8", 16);
+        Address fromAdd = new Address("cfxtest:aajsgh1ya76x9gpvteybxumxfsbs4c95pph5e4jjab");
+        TransactionBuilder txBuilder = new TransactionBuilder(fromAdd);
+        txBuilder.withChainId(1);
+        txBuilder.withTo(address);
+        txBuilder.withValue(value);
+
+        txBuilder.withGasPrice(BigInteger.valueOf(1)); // 没有的话，sdk会用默认值
+        txBuilder.withGasLimit(BigInteger.valueOf(240904)); // 没有的话，sdk会用默认值
+
+
+        connectNode();
+        RawTransaction rawTx = txBuilder.build(cfx);
+
+        // get account from accountManager, `account.send` will sign the tx and send it to blockchain
+        try {
+
+            String hexEncodedTx = am.signTransaction(rawTx, fromAdd, "222111");
+            String txHash = cfx.sendRawTransaction(hexEncodedTx).sendAndGet();
+            System.out.printf("txHash is: %s", txHash);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
 }
