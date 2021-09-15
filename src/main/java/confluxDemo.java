@@ -238,7 +238,7 @@ public class confluxDemo {
 //        cfd.importSk();
 //        cfd.buildAndSendTx();
 //        cfd.genKeyPairAndAddress();
-        cfd.sendTx();
+//        cfd.sendTx();
         System.out.println(cfd.CreateWallet().getAddress());
     }
 
