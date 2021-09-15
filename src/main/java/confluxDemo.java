@@ -12,6 +12,7 @@ import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
@@ -144,15 +145,6 @@ public class confluxDemo {
         return txData;
     }
 
-    public static void main(String args[]) {
-        confluxDemo cfd = new confluxDemo();
-//        cfd.importSk();
-//        cfd.buildAndSendTx();
-        cfd.genKeyPairAndAddress();
-//        cfd.sendTx();
-    }
-
-
 
     public void genKeyPairAndAddress() {
         KeyPairGenerator keyPairGenerator = null;
@@ -168,8 +160,12 @@ public class confluxDemo {
 
             connectNode();
             Account account = Account.create(cfx, "0x"+sk);
+
+
+
             System.out.printf("conflux address %s\n", account.getAddress());
             System.out.printf("hex address %s\n", account.getHexAddress());
+
         } catch (Exception e) {
         }
     }
@@ -203,14 +199,47 @@ public class confluxDemo {
 
         // get account from accountManager, `account.send` will sign the tx and send it to blockchain
         try {
-
-            String hexEncodedTx = am.signTransaction(rawTx, fromAdd, "222111");
+            SDKManager sdkManager = new SDKManager();
+            // alias填写具体账户的alias
+            String hexEncodedTx = sdkManager.sign(rawTx, "ECCHZEiuBp");
+            // String hexEncodedTx = am.signTransaction(rawTx, fromAdd, "222111");
             String txHash = cfx.sendRawTransaction(hexEncodedTx).sendAndGet();
             System.out.printf("txHash is: %s", txHash);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    public BigInteger getChainId() {
+        connectNode();
+        return cfx.getChainId();
+    }
+
+    public Address CreateWallet() {
+        SDKManager sdkManager = new SDKManager();
+        String alias;
+        try {
+            alias = sdkManager.generateECKeyPair();
+            System.out.println(alias);
+            String hexAddress = sdkManager.getAddress(alias);
+            int chainId = getChainId().intValue();
+            return new Address(hexAddress, chainId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
+    public static void main(String args[]) {
+        confluxDemo cfd = new confluxDemo();
+//        cfd.importSk();
+//        cfd.buildAndSendTx();
+//        cfd.genKeyPairAndAddress();
+        cfd.sendTx();
+        System.out.println(cfd.CreateWallet().getAddress());
     }
 
 
