@@ -1,6 +1,7 @@
 import cn.com.tass.jce.castle.core.jcajce.provider.asymmetric.ec.TAECPrivateKey;
 import cn.com.tass.jce.castle.core.jce.provider.TassProvider;
 import cn.com.tass.jce.castle.core.jce.spec.ECNamedCurveGenParameterSpec;
+import cn.com.tass.jce.castle.tc.asn1.x9.A;
 import conflux.web3j.Account;
 import conflux.web3j.AccountManager;
 import conflux.web3j.Cfx;
@@ -26,7 +27,8 @@ import java.util.Collections;
 public class confluxDemo {
     public String confluxSk = "0x3B57A00547A05511B0339FFBD9AA7A0AD2F6FD3D0B980372C22252F77D14D03D";
     Address address = new Address("cfxtest:aam66h08kb8acc4ea25661xpg1xbf2e8xy1a95pnju");
-    Address contractAddress = new Address("cfxtest:achm7rp1p42rvxh908up7c6a29r6nrt5f67xp4jm1g");
+//    Address contractAddress = new Address("cfxtest:achm7rp1p42rvxh908up7c6a29r6nrt5f67xp4jm1g");
+    Address contractAddress = new Address("cfxtest:acc6tmed9nu34y1ah3h6h42j41k7u093e276ap1cba");
     AccountManager am = null;
 
     Cfx cfx = null;
@@ -60,15 +62,13 @@ public class confluxDemo {
             am = new AccountManager(testNetId);
             // import private key
             am.imports(confluxSk, "112");
-            Address a = am.create("232");
-            System.out.println(a.getAddress());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void connectNode() {
-        cfx = Cfx.create("https://test.confluxrpc.org/v2", 3, 1000);
+        cfx = Cfx.create("https://test.confluxrpc.com", 3, 1000);
         BigInteger epoch = cfx.getEpochNumber().sendAndGet();
         System.out.println("Current epoch: " + epoch);
     }
@@ -81,7 +81,7 @@ public class confluxDemo {
         txBuilder.withValue(value);
 
         txBuilder.withGasPrice(BigInteger.valueOf(1)); // 没有的话，sdk会用默认值
-        txBuilder.withGasLimit(BigInteger.valueOf(240904)); // 没有的话，sdk会用默认值
+        txBuilder.withGasLimit(BigInteger.valueOf(340904)); // 没有的话，sdk会用默认值
 
         String data = makeFunctionCallData();
         txBuilder.withData(data);
@@ -112,7 +112,7 @@ public class confluxDemo {
                 new Utf8String("lately"),
                 new Utf8String("asdasd"),
                 new Utf8String("morden"),
-
+                new Utf8String("regular"),
                 new Utf8String("122"),
                 new Utf8String("12"),
                 new Utf8String("33"),
@@ -135,10 +135,12 @@ public class confluxDemo {
 
 
         Function function = new Function(
-                "mintArtWorksToken",  // 合约方法名
+                "mintArtWorksToken2Owner",  // 合约方法名
                 Arrays.<Type>asList(firstArg,
                         secondArg,
-                        new Uint256(332)),
+                        new Uint256(335),
+                        new Utf8String("https://test-tmhouse-oss.ebaas.com/nft_json"),
+                        new org.web3j.abi.datatypes.Address(160, address.getHexAddress())),
                 Collections.<TypeReference<?>>emptyList());
         String txData = FunctionEncoder.encode(function);
         System.out.println(txData);
@@ -232,14 +234,20 @@ public class confluxDemo {
 
     }
 
+    public void testZeroAddress() {
+        Address address1 = new Address("0x0000000000000000000000000000000000000000", 1);
+        System.out.println(address1.getHexAddress());
+        System.out.println(address1.getAddress());
+    }
 
     public static void main(String args[]) {
         confluxDemo cfd = new confluxDemo();
-//        cfd.importSk();
-//        cfd.buildAndSendTx();
+        cfd.importSk();
+        cfd.buildAndSendTx();
 //        cfd.genKeyPairAndAddress();
 //        cfd.sendTx();
-        System.out.println(cfd.CreateWallet().getAddress());
+//        System.out.println(cfd.CreateWallet().getAddress());
+//        cfd.testZeroAddress();
     }
 
 
